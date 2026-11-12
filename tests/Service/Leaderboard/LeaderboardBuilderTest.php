@@ -8,6 +8,7 @@ use App\Service\Leaderboard\AocLeaderboardClient;
 use App\Service\Leaderboard\LeaderboardBuilder;
 use App\Tests\HttpClient\AocApiMockResponseFactory;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\HttpClient\MockHttpClient;
 
 /**
@@ -87,7 +88,11 @@ final class LeaderboardBuilderTest extends TestCase
      */
     private function createLeaderboardBuilder(array $leaderboards): LeaderboardBuilder
     {
-        $aocLeaderboardClient = new AocLeaderboardClient(new MockHttpClient(new AocApiMockResponseFactory()), 'test-session-cookie');
+        $aocLeaderboardClient = new AocLeaderboardClient(
+            new MockHttpClient(new AocApiMockResponseFactory()),
+            new ArrayAdapter(),
+            'test-session-cookie',
+        );
 
         return new LeaderboardBuilder($aocLeaderboardClient, $leaderboards);
     }

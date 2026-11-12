@@ -17,3 +17,9 @@ framework:
         # Namespaced pools use the above "app" backend by default
         #pools:
             #my.dedicated.cache: null
+
+when@test:
+    framework:
+        cache:
+            # in memory, so that each test starts with an empty cache
+            app: cache.adapter.array
