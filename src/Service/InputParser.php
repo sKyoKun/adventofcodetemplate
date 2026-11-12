@@ -4,96 +4,164 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-class InputParser
+/**
+ * Helpers to turn the lines returned by InputReader into the structures puzzles usually need.
+ */
+final class InputParser
 {
-    public function parseInputWithIntegersAndComma(array $lines)
+    /**
+     * "1,-2,3" becomes [1, -2, 3].
+     *
+     * @param list<string> $lines
+     *
+     * @return list<list<int>>
+     */
+    public function parseCommaSeparatedIntegers(array $lines): array
     {
-        $finalArray = [];
-        foreach ($lines as $key => $line) {
-            $arrLine = explode(',', $line);
-            foreach ($arrLine as $keyLine => $number) {
-                $arrLine[$keyLine] = (int) $number;
+        $integerLines = [];
+
+        foreach ($lines as $line) {
+            $integers = [];
+            foreach (explode(',', $line) as $number) {
+                $integers[] = (int) $number;
             }
-            $finalArray[$key] = $arrLine;
+            $integerLines[] = $integers;
         }
 
-        return $finalArray;
+        return $integerLines;
     }
 
-    // a bc turns to ['a',' ','b','c']
-    public function parseInputFromStringsToArray(array $lines)
+    /**
+     * "a bc" becomes ['a', ' ', 'b', 'c'].
+     *
+     * @param list<string> $lines
+     *
+     * @return list<list<string>>
+     */
+    public function splitLinesIntoCharacters(array $lines): array
     {
-        $finalArray = [];
+        $characterLines = [];
 
-        foreach ($lines as $key => $line) {
-            $arrLine = str_split($line);
-            $finalArray[$key] = $arrLine;
+        foreach ($lines as $line) {
+            $characterLines[] = str_split($line);
         }
 
-        return $finalArray;
+        return $characterLines;
     }
 
-    // a bc turns to ['a', 'bc']
-    public function parseInputFromStringsWithSpaceToArray(array $lines)
+    /**
+     * "a   bc" becomes ['a', 'bc']: consecutive spaces count as one separator, leading and trailing ones are ignored.
+     *
+     * @param list<string> $lines
+     *
+     * @return list<list<string>>
+     */
+    public function splitLinesBySpace(array $lines): array
     {
-        $finalArray = [];
+        $wordLines = [];
 
-        foreach ($lines as $key => $line) {
-            $arrLine = explode(' ', $line);
-            $finalArray[$key] = $arrLine;
+        foreach ($lines as $line) {
+            // "\s+" splits on any number of spaces, PREG_SPLIT_NO_EMPTY drops the empty words around the line
+            $wordLines[] = preg_split('/\s+/', $line, -1, \PREG_SPLIT_NO_EMPTY);
         }
 
-        return $finalArray;
+        return $wordLines;
     }
 
-    public function parseInputFromStringsToIntArray(array $lines)
+    /**
+     * "1203" becomes [1, 2, 0, 3].
+     *
+     * @param list<string> $lines
+     *
+     * @return list<list<int>>
+     */
+    public function splitLinesIntoDigits(array $lines): array
     {
-        $finalArray = [];
+        $digitLines = [];
 
-        foreach ($lines as $key => $line) {
-            $arrLine = array_map('intval', str_split($line));
-            $finalArray[$key] = $arrLine;
+        foreach ($lines as $line) {
+            $digits = [];
+            foreach (str_split($line) as $character) {
+                $digits[] = (int) $character;
+            }
+            $digitLines[] = $digits;
         }
 
-        return $finalArray;
+        return $digitLines;
     }
 
-    public function getReversedGrid(array $grid): array
+    /**
+     * Rows become columns: ['abc', 'def'] becomes ['ad', 'be', 'cf']. The grid must be rectangular.
+     *
+     * @param list<string> $lines
+     *
+     * @return list<string>
+     */
+    public function transposeGrid(array $lines): array
     {
-        $fullArrayGrid = [];
-        $reversedGrid = [];
-        foreach ($grid as $key => $line) {
-            $fullArrayGrid[$key] = str_split($line);
+        if ([] === $lines) {
+            return [];
         }
 
-        for ($i = 0; $i < count($fullArrayGrid[0]); ++$i) {
-            $reversedGrid[$i] = implode('', array_column($fullArrayGrid, $i));
+        $characterGrid = $this->splitLinesIntoCharacters($lines);
+        $transposedLines = [];
+
+        foreach (array_keys($characterGrid[0]) as $column) {
+            $transposedLines[] = implode('', array_column($characterGrid, $column));
         }
 
-        return $reversedGrid;
+        return $transposedLines;
     }
 
+    /**
+     * [[a, b, c],      [[d, a],
+     *  [d, e, f]]  =>   [e, b],
+     *                   [f, c]].
+     *
+     * @template T
+     *
+     * @param list<list<T>> $grid
+     *
+     * @return list<list<T>>
+     */
     public function rotateGridClockwise(array $grid): array
     {
-        $grid = array_values($grid);
-        $result = [];
-
-        // make each new row = reversed old column
-        foreach (array_keys($grid[0]) as $column) {
-            $result[] = array_reverse(array_column($grid, $column));
+        if ([] === $grid) {
+            return [];
         }
 
-        return $result;
+        $rotatedGrid = [];
+
+        // each new row is an old column, read from bottom to top
+        foreach (array_keys($grid[0]) as $column) {
+            $rotatedGrid[] = array_reverse(array_column($grid, $column));
+        }
+
+        return $rotatedGrid;
     }
 
-    public function rotateGridAntiClockwise(array $grid): array
+    /**
+     * [[a, b, c],      [[c, f],
+     *  [d, e, f]]  =>   [b, e],
+     *                   [a, d]].
+     *
+     * @template T
+     *
+     * @param list<list<T>> $grid
+     *
+     * @return list<list<T>>
+     */
+    public function rotateGridCounterClockwise(array $grid): array
     {
+        $rotatedGrid = [];
+
+        // each old row, read from right to left, fills the new rows top to bottom
         foreach ($grid as $row) {
-            foreach (array_reverse($row) as $i => $v) {
-                $result[$i][] = $v;
+            foreach (array_reverse($row) as $newRowIndex => $cell) {
+                $rotatedGrid[$newRowIndex][] = $cell;
             }
         }
 
-        return $result;
+        return $rotatedGrid;
     }
 }
