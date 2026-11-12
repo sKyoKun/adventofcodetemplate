@@ -14,22 +14,22 @@ class LeaderboardServices
 
     public function retrieveLeaderboards(int $year): array
     {
-        $options = array(
-            'http'=>array(
-                'method'=>"GET",
-                'header'=> "Cookie: session=".$this->cookie."\r\n"."User-Agent: github.com/sKyoKun\r\n"
-            )
-        );
+        $options = [
+            'http' => [
+                'method' => 'GET',
+                'header' => 'Cookie: session='.$this->cookie."\r\nUser-Agent: github.com/sKyoKun\r\n",
+            ],
+        ];
 
         $context = stream_context_create($options);
 
         // Open the file using the HTTP headers set above
         $json = [];
-         foreach ($this->leaderboards as $leaderboard) {
-             $url = str_replace('__YEAR__', ''.$year, self::AOC_API_URL);
-             $url = str_replace('__LEADERBOARDID__', ''.$leaderboard['id'], $url);
-             $json[$leaderboard['name']] = file_get_contents($url, false, $context);
-         }
+        foreach ($this->leaderboards as $leaderboard) {
+            $url = str_replace('__YEAR__', ''.$year, self::AOC_API_URL);
+            $url = str_replace('__LEADERBOARDID__', ''.$leaderboard['id'], $url);
+            $json[$leaderboard['name']] = file_get_contents($url, false, $context);
+        }
 
         return $json;
     }
@@ -39,8 +39,7 @@ class LeaderboardServices
         $leaderboard = [];
         $decodedJson = json_decode($json);
 
-        foreach($decodedJson->members as $member)
-        {
+        foreach ($decodedJson->members as $member) {
             if (empty($member->name) || 0 === $member->stars) {
                 continue;
             }
@@ -48,7 +47,7 @@ class LeaderboardServices
             $leaderboard[$member->name]['name'] = $member->name;
             $leaderboard[$member->name]['local_score'] = $member->local_score;
             $leaderboard[$member->name]['completion_day_level'] = [];
-            foreach($member->completion_day_level as $key => $completionDay) {
+            foreach ($member->completion_day_level as $key => $completionDay) {
                 $leaderboard[$member->name]['completion_day_level'][$key] = $completionDay;
             }
         }
@@ -61,7 +60,7 @@ class LeaderboardServices
 
     public function orderLeaderboard(&$leaderboard): void
     {
-        uasort($leaderboard, function($a, $b) {
+        uasort($leaderboard, function ($a, $b) {
             return $b['stars'] <=> $a['stars']
                 ?: $a['name'] <=> $b['name'];
         });

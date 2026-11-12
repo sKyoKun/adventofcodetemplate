@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Tests\Behat;
@@ -16,7 +17,9 @@ final class RequestContext implements Context
 {
     private Response $response;
 
-    public function __construct(protected KernelInterface $kernel) {}
+    public function __construct(private KernelInterface $kernel)
+    {
+    }
 
     #[When('I request :path using HTTP method :method')]
     public function iRequestUsingHttpMethod(mixed $path, string $method): void

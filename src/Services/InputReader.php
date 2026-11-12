@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
@@ -15,7 +16,7 @@ class InputReader
     public function getInput(string $file): array
     {
         $inputs = [];
-        $content = fopen($this->fileDir . $file, 'r');
+        $content = fopen($this->fileDir.$file, 'r');
 
         while (($line = fgets($content)) !== false) {
             $lineWithoutSpaces = trim($line);

@@ -27,7 +27,6 @@ class Day1Controller extends AbstractController
     #[Route('/1/{file}', name: 'day1_1', defaults: ['file' => 'day1'])]
     public function part1(string $file): JsonResponse
     {
-
         return new JsonResponse('', Response::HTTP_OK);
     }
 

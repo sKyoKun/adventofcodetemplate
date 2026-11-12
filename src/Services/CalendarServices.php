@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
@@ -74,12 +75,12 @@ class CalendarServices
 
     public function rotateGridClockwise(array $grid): array
     {
-        $grid = array_values( $grid );
-        $result = array();
+        $grid = array_values($grid);
+        $result = [];
 
         // make each new row = reversed old column
-        foreach( array_keys( $grid[0] ) as $column ){
-            $result[] = array_reverse( array_column( $grid, $column ) );
+        foreach (array_keys($grid[0]) as $column) {
+            $result[] = array_reverse(array_column($grid, $column));
         }
 
         return $result;

@@ -6,7 +6,6 @@ namespace App\Controller;
 
 use App\Utils\LeaderboardServices;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -16,10 +15,11 @@ class DisplayLeaderboardsController extends AbstractController
     {
     }
 
-    #[Route('/leaderboards/{year}',
+    #[Route(
+        '/leaderboards/{year}',
         name: 'leaderboards',
         requirements: ['year' => '\d+'],
-        defaults: ["year"=>2025],
+        defaults: ['year' => 2025],
         methods: ['GET']
     )]
     public function displayLeaderboard(int $year): Response
@@ -39,7 +39,7 @@ class DisplayLeaderboardsController extends AbstractController
 
         return $this->render('leaderboard.twig', [
             'year' => $year,
-            'leaderboardData' => $leaderboardsData
+            'leaderboardData' => $leaderboardsData,
         ]);
     }
 }

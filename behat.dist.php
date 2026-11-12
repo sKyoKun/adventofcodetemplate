@@ -9,11 +9,11 @@ use Behat\Config\Profile;
 use Behat\Config\Suite;
 use FriendsOfBehat\SymfonyExtension\ServiceContainer\SymfonyExtension;
 
-return (new Config())
+return new Config()
     ->withProfile(
-        (new Profile('default'))
+        new Profile('default')
             ->withSuite(
-                (new Suite('default'))
+                new Suite('default')
                     ->withContexts(RequestContext::class)
             )
             ->withExtension(new Extension(SymfonyExtension::class, [
