@@ -5,3 +5,5 @@ framework:
 when@test:
     framework:
         test: true
+        http_client:
+            mock_response_factory: App\Tests\HttpClient\AocApiMockResponseFactory

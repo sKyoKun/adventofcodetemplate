@@ -7,7 +7,12 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    # Default values of the environment variables, override them in .env.local
     env(AUTH_FILE): '%kernel.project_dir%/cookie.txt'
+    # Year displayed by /leaderboards when none is given in the URL
+    env(AOC_YEAR): '2026'
+    # e.g. '[{"name":"My friends","id":12345},{"name":"WA Lyon","id":67890,"group":"WA"}]'
+    env(LEADERBOARDS): '[]'
 
 services:
     # default configuration for services in *this* file

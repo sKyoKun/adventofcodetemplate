@@ -4,42 +4,32 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Service\Leaderboard\LeaderboardService;
+use App\Service\AdventCalendar;
+use App\Service\Leaderboard\LeaderboardBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-class DisplayLeaderboardsController extends AbstractController
+final class DisplayLeaderboardsController extends AbstractController
 {
-    public function __construct(private LeaderboardService $leaderboardService)
-    {
+    public function __construct(
+        private readonly LeaderboardBuilder $leaderboardBuilder,
+        private readonly AdventCalendar $adventCalendar,
+        #[Autowire(env: 'int:AOC_YEAR')]
+        private readonly int $defaultYear,
+    ) {
     }
 
-    #[Route(
-        '/leaderboards/{year}',
-        name: 'leaderboards',
-        requirements: ['year' => '\d+'],
-        defaults: ['year' => 2025],
-        methods: ['GET']
-    )]
-    public function displayLeaderboard(int $year): Response
+    #[Route('/leaderboards/{year}', name: 'leaderboards', requirements: ['year' => '\d{4}'], methods: ['GET'])]
+    public function displayLeaderboard(?int $year = null): Response
     {
-        $leaderboards = $this->leaderboardService->retrieveLeaderboards($year);
-        $leaderboardsData = [];
-        $leaderboardsData['WA'] = [];
-        foreach ($leaderboards as $leaderboardName => $leaderboard) {
-            // merge the 2 WA leaderboards
-            if (str_contains($leaderboardName, 'WA')) {
-                $leaderboardsData['WA'] = array_merge($leaderboardsData['WA'], $this->leaderboardService->parseJsonLeaderboard($leaderboard));
-                $this->leaderboardService->orderLeaderboard($leaderboardsData['WA']);
-            } else {
-                $leaderboardsData[$leaderboardName] = $this->leaderboardService->parseJsonLeaderboard($leaderboard);
-            }
-        }
+        $year ??= $this->defaultYear;
 
         return $this->render('leaderboard/index.html.twig', [
             'year' => $year,
-            'leaderboardData' => $leaderboardsData,
+            'numberOfDays' => $this->adventCalendar->countDays($year),
+            'leaderboardData' => $this->leaderboardBuilder->buildLeaderboards($year),
         ]);
     }
 }

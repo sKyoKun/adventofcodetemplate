@@ -1,0 +1,26 @@
+{
+    "event": "2025",
+    "owner_id": 21,
+    "members": {
+        "21": {
+            "id": 21,
+            "name": "Dave",
+            "stars": 2,
+            "local_score": 8,
+            "last_star_ts": 1764550000,
+            "completion_day_level": {
+                "1": {"1": {"get_star_ts": 1764547200, "star_index": 1}, "2": {"get_star_ts": 1764550000, "star_index": 2}}
+            }
+        },
+        "22": {
+            "id": 22,
+            "name": "Eve",
+            "stars": 1,
+            "local_score": 4,
+            "last_star_ts": 1764547300,
+            "completion_day_level": {
+                "1": {"1": {"get_star_ts": 1764547300, "star_index": 3}}
+            }
+        }
+    }
+}
