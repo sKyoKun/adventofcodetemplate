@@ -4,6 +4,6 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-class Day1Service
+final class Day1Service
 {
 }
