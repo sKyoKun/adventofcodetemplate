@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Services;
+namespace App\Service;
 
-class CalendarServices
+class InputParser
 {
     public function parseInputWithIntegersAndComma(array $lines)
     {

@@ -1,0 +1,11 @@
+<?php
+
+namespace App\Tests\Service;
+
+use App\Service\Day[calendarDay]Service;
+use PHPUnit\Framework\TestCase;
+
+class Day[calendarDay]ServiceTest extends TestCase
+{
+
+}

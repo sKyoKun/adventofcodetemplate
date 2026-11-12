@@ -13,8 +13,8 @@ Run the symfony server : ```symfony serve -d```
 ## :books: How to use
 Initialize a new day : ```php bin/console generate:day X``` where X is the day number
 
-- Create your real input file in ```public/files/dayX.txt```
-- If needed, create your test file in ```public/files/dayXtest.txt```
+- Create your real input file in ```inputs/dayX.txt```
+- If needed, create your test file in ```inputs/dayXtest.txt```
 - Call **/dayX/1** for the first part, **/dayX/2** for the second part to execute the real input
 - Call **/dayX/1/dayXtest** to execute with the test input
 

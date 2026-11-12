@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Utils\LeaderboardServices;
+use App\Service\Leaderboard\LeaderboardService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 class DisplayLeaderboardsController extends AbstractController
 {
-    public function __construct(private LeaderboardServices $leaderboardServices)
+    public function __construct(private LeaderboardService $leaderboardService)
     {
     }
 
@@ -24,20 +24,20 @@ class DisplayLeaderboardsController extends AbstractController
     )]
     public function displayLeaderboard(int $year): Response
     {
-        $leaderboards = $this->leaderboardServices->retrieveLeaderboards($year);
+        $leaderboards = $this->leaderboardService->retrieveLeaderboards($year);
         $leaderboardsData = [];
         $leaderboardsData['WA'] = [];
         foreach ($leaderboards as $leaderboardName => $leaderboard) {
             // merge the 2 WA leaderboards
             if (str_contains($leaderboardName, 'WA')) {
-                $leaderboardsData['WA'] = array_merge($leaderboardsData['WA'], $this->leaderboardServices->parseJsonLeaderboard($leaderboard));
-                $this->leaderboardServices->orderLeaderboard($leaderboardsData['WA']);
+                $leaderboardsData['WA'] = array_merge($leaderboardsData['WA'], $this->leaderboardService->parseJsonLeaderboard($leaderboard));
+                $this->leaderboardService->orderLeaderboard($leaderboardsData['WA']);
             } else {
-                $leaderboardsData[$leaderboardName] = $this->leaderboardServices->parseJsonLeaderboard($leaderboard);
+                $leaderboardsData[$leaderboardName] = $this->leaderboardService->parseJsonLeaderboard($leaderboard);
             }
         }
 
-        return $this->render('leaderboard.twig', [
+        return $this->render('leaderboard/index.html.twig', [
             'year' => $year,
             'leaderboardData' => $leaderboardsData,
         ]);

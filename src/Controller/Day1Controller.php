@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Services\Day1Services;
-use App\Services\InputReader;
+use App\Service\Day1Service;
+use App\Service\InputReader;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,12 +16,12 @@ class Day1Controller extends AbstractController
 {
     private InputReader $inputReader;
 
-    private Day1Services $day1services;
+    private Day1Service $day1Service;
 
-    public function __construct(InputReader $inputReader, Day1Services $day1services)
+    public function __construct(InputReader $inputReader, Day1Service $day1Service)
     {
         $this->inputReader = $inputReader;
-        $this->day1services = $day1services;
+        $this->day1Service = $day1Service;
     }
 
     #[Route('/1/{file}', name: 'day1_1', defaults: ['file' => 'day1'])]

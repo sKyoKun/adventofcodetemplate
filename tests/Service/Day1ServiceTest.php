@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Services;
+namespace App\Tests\Service;
 
 use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
  */
-final class Day1ServicesTest extends TestCase
+final class Day1ServiceTest extends TestCase
 {
 }

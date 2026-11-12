@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
-use App\Services\InputReader;
-use App\Services\Day[calendarDay]Services;
+use App\Service\InputReader;
+use App\Service\Day[calendarDay]Service;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,7 +14,7 @@ class Day[calendarDay]Controller extends AbstractController
 {
     public function __construct(
         private InputReader $inputReader,
-        private Day[calendarDay]Services $day[calendarDay]services
+        private Day[calendarDay]Service $day[calendarDay]Service
     ){}
 
     #[Route('/1/{file}', name: 'day[calendarDay]_1', defaults: ["file"=>"day[calendarDay]"])]

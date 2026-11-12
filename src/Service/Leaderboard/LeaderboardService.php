@@ -2,14 +2,20 @@
 
 declare(strict_types=1);
 
-namespace App\Utils;
+namespace App\Service\Leaderboard;
 
-class LeaderboardServices
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+
+class LeaderboardService
 {
     private const AOC_API_URL = 'https://adventofcode.com/__YEAR__/leaderboard/private/view/__LEADERBOARDID__.json';
 
-    public function __construct(private string $cookie, private array $leaderboards)
-    {
+    public function __construct(
+        #[Autowire(env: 'file:AUTH_FILE')]
+        private readonly string $cookie,
+        #[Autowire(env: 'json:LEADERBOARDS')]
+        private readonly array $leaderboards,
+    ) {
     }
 
     public function retrieveLeaderboards(int $year): array
