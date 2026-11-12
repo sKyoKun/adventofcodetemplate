@@ -22,12 +22,12 @@ final class RequestContext implements Context
     }
 
     #[When('I request :path using HTTP method :method')]
-    public function iRequestUsingHttpMethod(mixed $path, string $method): void
+    public function iRequestUsingHttpMethod(string $path, string $method): void
     {
         $request = Request::create($path, $method);
         $this->response = $this->kernel->handle($request);
 
-        // si vous avez des evenements dans le kernel terminate, ne pas oublier ces lignes ;)
+        // if you have kernel.terminate listeners, don't forget these lines ;)
         Assert::assertInstanceOf(Kernel::class, $this->kernel);
         $this->kernel->terminate($request, $this->response);
     }
@@ -35,17 +35,32 @@ final class RequestContext implements Context
     #[Then('the status code must be :statusCode')]
     public function theStatusCodeMustBe(int $statusCode): void
     {
-        $resStatusCode = $this->response->getStatusCode();
+        $actualStatusCode = $this->response->getStatusCode();
 
-        Assert::AssertEquals($statusCode, $resStatusCode);
+        // the beginning of the response shows the error: in the CLI, Symfony renders the exception as a text dump
+        $failureMessage = \sprintf(
+            'Expected the status code %d, got %d. Response: %s',
+            $statusCode,
+            $actualStatusCode,
+            mb_substr(trim(strip_tags((string) $this->response->getContent())), 0, 500),
+        );
+
+        // assertEquals and not assertSame: with PHPUnit 13, a failing assertSame outside the PHPUnit runner (in Behat)
+        // throws a TypeError from PHPUnit\TextUI\Configuration\Registry instead of the failure message
+        Assert::assertEquals($statusCode, $actualStatusCode, $failureMessage);
     }
 
     #[Then('the response should be :value')]
-    public function theResponseShouldContainTableNode(mixed $value): void
+    public function theResponseShouldBe(string $value): void
     {
-        Assert::assertIsString($this->response->getContent());
-        $content = json_decode($this->response->getContent());
+        $content = $this->response->getContent();
+        Assert::assertIsString($content);
 
-        Assert::assertEquals($value, $content);
+        // assertEquals and not assertSame: an answer returned as an integer (e.g. 42) must match "42"
+        Assert::assertEquals(
+            $value,
+            json_decode($content),
+            \sprintf('Expected the response "%s", got %s.', $value, $content),
+        );
     }
 }
