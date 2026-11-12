@@ -5,3 +5,24 @@ services:
 
     App\Tests\Behat\:
         resource: '../tests/Behat/*'
+
+    App\Tests\HttpClient\:
+        resource: '../tests/HttpClient/*'
+
+    # Tests must not depend on the local configuration (.env, .env.local, cookie.txt): the year, the session cookie
+    # and the leaderboards are fixed here, and the Advent of Code API is mocked by
+    # App\Tests\HttpClient\AocApiMockResponseFactory (see config/packages/framework.yaml)
+    App\Controller\DisplayLeaderboardsController:
+        arguments:
+            $defaultYear: 2024
+
+    App\Service\Leaderboard\AocLeaderboardClient:
+        arguments:
+            $sessionCookie: 'test-session-cookie'
+
+    App\Service\Leaderboard\LeaderboardBuilder:
+        arguments:
+            $leaderboards:
+                - { name: 'My friends', id: 1 }
+                - { name: 'WA Lyon', id: 2, group: 'WA' }
+                - { name: 'WA Paris', id: 3, group: 'WA' }

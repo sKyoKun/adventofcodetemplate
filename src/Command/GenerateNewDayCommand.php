@@ -4,82 +4,120 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use Symfony\Component\Console\Attribute\Argument;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Finder\Finder;
 
-class GenerateNewDayCommand extends Command
+#[AsCommand(
+    name: 'generate:day',
+    description: 'Generates the controller, service, tests and input files of an Advent of Code day',
+)]
+final readonly class GenerateNewDayCommand
 {
-    private const CONTROLLER_PATH = './src/Controller/';
-    private const SERVICE_PATH = './src/Services/';
-    private const CONTROLLER_TEST_PATH = './features/';
-    private const SERVICE_TEST_PATH = './tests/Services/';
-    private const EXERCISES_FILE_PATH = './public/Files/';
+    private const string DAY_PLACEHOLDER = '[calendarDay]';
 
-    private string $name = 'generate:day';
+    private const int FIRST_DAY = 1;
 
-    public function __construct()
-    {
-        parent::__construct($this->name);
+    private const int LAST_DAY = 25;
+
+    /**
+     * Skeleton file name => generated file path, relative to the project directory.
+     */
+    private const array SKELETON_TARGETS = [
+        'Controller.php.txt' => 'src/Controller/Day[calendarDay]Controller.php',
+        'Service.php.txt' => 'src/Service/Day[calendarDay]Service.php',
+        'ServiceTest.php.txt' => 'tests/Service/Day[calendarDay]ServiceTest.php',
+        'day.feature.txt' => 'features/day[calendarDay].feature',
+    ];
+
+    /**
+     * Empty input files to create, relative to the project directory.
+     */
+    private const array INPUT_FILES = [
+        'inputs/day[calendarDay].txt',
+        'inputs/day[calendarDay]test.txt',
+    ];
+
+    public function __construct(
+        private Filesystem $filesystem,
+        #[Autowire('%kernel.project_dir%/skeleton')]
+        private string $skeletonDirectory,
+        #[Autowire('%kernel.project_dir%')]
+        private string $projectDirectory,
+    ) {
     }
 
-    public function execute(InputInterface $input, OutputInterface $output): int
-    {
-        if (!is_numeric($input->getArgument('dayNumber'))) {
-            return Command::FAILURE;
+    public function __invoke(
+        SymfonyStyle $io,
+        #[Argument(description: 'Advent of Code day number (1 to 25)')]
+        int $day,
+    ): int {
+        if (self::FIRST_DAY > $day || self::LAST_DAY < $day) {
+            $io->error(\sprintf('The day must be between %d and %d, got %d.', self::FIRST_DAY, self::LAST_DAY, $day));
+
+            return Command::INVALID;
         }
 
-        $day = $input->getArgument('dayNumber');
-        $finder = new Finder();
-        $filesystem = new Filesystem();
+        $createdFiles = [];
+        $skippedFiles = [];
 
-        $finder->files()->in(__DIR__ . '/../../templates');
+        foreach (self::SKELETON_TARGETS as $skeletonFileName => $targetPathPattern) {
+            $targetPath = $this->replaceDayPlaceholder($targetPathPattern, $day);
+            $skeletonContent = $this->filesystem->readFile($this->skeletonDirectory.'/'.$skeletonFileName);
 
-        if (false === $finder->hasResults()) {
-            throw new \Exception('No templates found');
-        }
-
-        foreach ($finder as $file) {
-            $content = $file->getContents();
-            $content = str_replace('[calendarDay]', $day, $content);
-            $path = null;
-            if (str_contains($content, 'namespace App\Controller')) {
-                $fileName = 'Day' . $day . 'Controller.php';
-                $path = self::CONTROLLER_PATH . $fileName;
-            } elseif (str_contains($content, 'namespace App\Services')) {
-                $fileName = 'Day' . $day . 'Services.php';
-                $path = self::SERVICE_PATH . $fileName;
-            } elseif (str_contains($content, 'Feature:')) {
-                $fileName = 'day' . $day . '.feature';
-                $path = self::CONTROLLER_TEST_PATH . $fileName;
-            } elseif (str_contains($content, 'namespace App\Tests\Services')) {
-                $fileName = 'Day' . $day . 'ServicesTest.php';
-                $path = self::SERVICE_TEST_PATH . $fileName;
-            }
-            if (false === $filesystem->exists($path)) {
-                $filesystem->appendToFile($path, $content);
-            }
-
-            $inputPath = self::EXERCISES_FILE_PATH . 'day' . $day . '.txt';
-            $inputTestPath = self::EXERCISES_FILE_PATH . 'day' . $day . 'test.txt';
-            if (false === $filesystem->exists($inputPath)) {
-                $filesystem->appendToFile($inputPath, '');
-            }
-            if (false === $filesystem->exists($inputTestPath)) {
-                $filesystem->appendToFile($inputTestPath, '');
+            if (true === $this->createFileIfMissing($targetPath, $this->replaceDayPlaceholder($skeletonContent, $day))) {
+                $createdFiles[] = $targetPath;
+            } else {
+                $skippedFiles[] = $targetPath;
             }
         }
+
+        foreach (self::INPUT_FILES as $inputPathPattern) {
+            $inputPath = $this->replaceDayPlaceholder($inputPathPattern, $day);
+
+            if (true === $this->createFileIfMissing($inputPath, '')) {
+                $createdFiles[] = $inputPath;
+            } else {
+                $skippedFiles[] = $inputPath;
+            }
+        }
+
+        if (0 < \count($createdFiles)) {
+            $io->section('Created files');
+            $io->listing($createdFiles);
+        }
+
+        if (0 < \count($skippedFiles)) {
+            $io->section('Already existing files (left untouched)');
+            $io->listing($skippedFiles);
+        }
+
+        $io->success(\sprintf('Day %d is ready.', $day));
 
         return Command::SUCCESS;
     }
 
-    protected function configure(): void
+    private function replaceDayPlaceholder(string $content, int $day): string
     {
-        $this->setDescription('Adds new day files in the project.')
-            ->addArgument('dayNumber', InputArgument::REQUIRED, 'Advent day')
-        ;
+        return str_replace(self::DAY_PLACEHOLDER, (string) $day, $content);
+    }
+
+    /**
+     * @return bool true if the file has been created, false if it already existed
+     */
+    private function createFileIfMissing(string $relativePath, string $content): bool
+    {
+        $absolutePath = $this->projectDirectory.'/'.$relativePath;
+
+        if (true === $this->filesystem->exists($absolutePath)) {
+            return false;
+        }
+
+        $this->filesystem->dumpFile($absolutePath, $content);
+
+        return true;
     }
 }

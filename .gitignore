@@ -10,7 +10,7 @@
 ###< symfony/framework-bundle ###
 
 ###> friends-of-behat/symfony-extension ###
-/behat.yml
+/behat.php
 ###< friends-of-behat/symfony-extension ###
 
 ###> friendsofphp/php-cs-fixer ###
@@ -20,16 +20,11 @@
 
 ###> phpunit/phpunit ###
 /phpunit.xml
-.phpunit.result.cache
+/.phpunit.cache/
 ###< phpunit/phpunit ###
 
-###> symfony/phpunit-bridge ###
-.phpunit.result.cache
-/phpunit.xml
-###< symfony/phpunit-bridge ###
-
 cookie.txt
-/public/Files/day*[0-9].txt
+/inputs/day*[0-9].txt
 
 ###> symfony/asset-mapper ###
 /public/assets/
